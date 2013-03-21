@@ -16,8 +16,8 @@
 		E205C55A16FB9141006240BD /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = E205C55916FB9141006240BD /* Default.png */; };
 		E205C55C16FB9141006240BD /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E205C55B16FB9141006240BD /* Default@2x.png */; };
 		E205C55E16FB9141006240BD /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E205C55D16FB9141006240BD /* Default-568h@2x.png */; };
-		E205C56816FB92FC006240BD /* IIResidenceStore.m in Sources */ = {isa = PBXBuildFile; fileRef = E205C56716FB92FC006240BD /* IIResidenceStore.m */; };
 		E205C56A16FBA99D006240BD /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E205C56916FBA99D006240BD /* Security.framework */; };
+		E205C56E16FBCB84006240BD /* IIResidenceStore.m in Sources */ = {isa = PBXBuildFile; fileRef = E205C56D16FBCB84006240BD /* IIResidenceStore.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,9 +34,9 @@
 		E205C55916FB9141006240BD /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		E205C55B16FB9141006240BD /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		E205C55D16FB9141006240BD /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
-		E205C56616FB92FC006240BD /* IIResidenceStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IIResidenceStore.h; sourceTree = "<group>"; };
-		E205C56716FB92FC006240BD /* IIResidenceStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IIResidenceStore.m; sourceTree = "<group>"; };
 		E205C56916FBA99D006240BD /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		E205C56C16FBCB84006240BD /* IIResidenceStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IIResidenceStore.h; sourceTree = "<group>"; };
+		E205C56D16FBCB84006240BD /* IIResidenceStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IIResidenceStore.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,18 +110,19 @@
 		E205C56416FB929B006240BD /* vendor */ = {
 			isa = PBXGroup;
 			children = (
-				E205C56516FB92AC006240BD /* IIResidenceStore */,
+				E205C56B16FBCB84006240BD /* IIResidenceStore */,
 			);
 			name = vendor;
 			sourceTree = "<group>";
 		};
-		E205C56516FB92AC006240BD /* IIResidenceStore */ = {
+		E205C56B16FBCB84006240BD /* IIResidenceStore */ = {
 			isa = PBXGroup;
 			children = (
-				E205C56616FB92FC006240BD /* IIResidenceStore.h */,
-				E205C56716FB92FC006240BD /* IIResidenceStore.m */,
+				E205C56C16FBCB84006240BD /* IIResidenceStore.h */,
+				E205C56D16FBCB84006240BD /* IIResidenceStore.m */,
 			);
-			path = IIResidenceStore;
+			name = IIResidenceStore;
+			path = ../../IIResidenceStore;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -191,7 +192,7 @@
 			files = (
 				E205C55416FB9141006240BD /* main.m in Sources */,
 				E205C55816FB9141006240BD /* AppDelegate.m in Sources */,
-				E205C56816FB92FC006240BD /* IIResidenceStore.m in Sources */,
+				E205C56E16FBCB84006240BD /* IIResidenceStore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
