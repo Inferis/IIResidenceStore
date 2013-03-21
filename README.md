@@ -1,7 +1,7 @@
 IIResidenceStore
 ================
 
-`IIResidenceStore` is my own implementation of `TBUserIdentidy` by [@qnoid](http://twitter.com/qnoid). I found his implementation to a bit confusing and wanted to take a more layered approach: make an api (`IIResidenceStore`) and then some controllers and views on top of that. 
+`IIResidenceStore` is my own implementation of [TBUserIdentidy](https://github.com/qnoid/TBUserIdentity) by [@qnoid](http://twitter.com/qnoid). I found his implementation to a bit confusing and wanted to take a more layered approach: make an api (`IIResidenceStore`) and then some controllers and views on top of that. 
 
 That way, you'd be free on how to implement this yourself: create your own UI or use the default.
 
@@ -93,3 +93,15 @@ This thing requires ARC and a fairly recent version of Xcode (4.6 or so). It onl
 
 Don't forget to reference the `Security` framework.
 
+License
+=======
+
+`IIResidenceStore` published under the MIT license:
+
+Copyright (C) 2013, Tom Adriaenssen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
