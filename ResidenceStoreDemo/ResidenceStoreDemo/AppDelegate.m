@@ -12,7 +12,29 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    self.residenceStore = [IIResidenceStore storeWithVerifier:@"http://user-identity-nsconf.herokuapp.com/users"];
+    
+    NSString* email = @"tom@interfaceimplementation.be";
+    NSLog(@"is registered %d", [self.residenceStore isEmailRegistered:email]);
+    NSLog(@"is verified %d", [self.residenceStore isEmailVerified:email]);
+    NSLog(@"token %@", [self.residenceStore residenceTokenForEmail:email]);
+
+    [self.residenceStore removeAllResidences];
+    [self.residenceStore registerResidenceForEmail:email completion:^(BOOL success, NSError *error) {
+        NSLog(@"registered %d", success);
+        if (success) {
+            [self.residenceStore verifyResidenceForEmail:email completion:^(BOOL success, NSError *error) {
+                NSLog(@"verified %d", success);
+
+                NSLog(@"is registered %d", [self.residenceStore isEmailRegistered:email]);
+                NSLog(@"is verified %d", [self.residenceStore isEmailVerified:email]);
+                NSLog(@"token %@", [self.residenceStore residenceTokenForEmail:email]);
+            }];
+        }
+    }];
+    
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];

@@ -7,9 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "IIResidenceStore.h"
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
+@property (strong, nonatomic) IIResidenceStore *residenceStore;
 
 @end
