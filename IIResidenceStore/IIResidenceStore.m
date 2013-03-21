@@ -27,6 +27,7 @@
     if ((self = [self init])) {
         _verifier = verifier;
         _queue = [NSOperationQueue new];
+        _verifierTimeout = 30;
         
         NSString* bundleId = [[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString*)kCFBundleIdentifierKey];
         
