@@ -53,7 +53,8 @@
 }
 
 - (BOOL)isEmailRegistered:(NSString*)email {
-    return !![self residenceForEmail:email];
+    NSDictionary* residence = [self residenceForEmail:email];
+    return [residence[@"registered"] boolValue];
 }
 
 - (BOOL)isEmailVerified:(NSString*)email {
@@ -115,13 +116,17 @@
             return;
         }
         
-        NSString* result = [NSString stringWithUTF8String:[data bytes]];
-        NSLog(@"result = %@", result);
-
-        id item = [NSJSONSerialization JSONObjectWithData:data options:nil error:nil];
-        NSLog(@"item = %@", item);
+        BOOL ok = NO;
+        id item = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        if (item) {
+            @synchronized(_key) {
+                NSMutableDictionary* residence = [NSMutableDictionary dictionaryWithDictionary:[self residenceForEmail:email]];
+                residence[@"registered"] = @"YES";
+                ok = [self updateResidence:residence];
+            }
+        }
         
-        completion(YES, nil);
+        completion(ok, nil);
     }];
 }
 

@@ -21,6 +21,7 @@
 
     [self.residenceStore removeAllResidences];
     [self.residenceStore registerResidenceForEmail:email completion:^(BOOL success, NSError *error) {
+        // SET A BREAKPOINT HERE AND CONTINUE AFTER VALIDATION EMAIL
         NSLog(@"registered %d", success);
         if (success) {
             [self.residenceStore verifyResidenceForEmail:email completion:^(BOOL success, NSError *error) {
