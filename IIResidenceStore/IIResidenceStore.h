@@ -13,17 +13,15 @@
 @property (nonatomic, strong, readonly) NSString* verifier;
 @property (nonatomic, assign) NSTimeInterval verifierTimeout;
 
-
 - (NSArray*)allEmails;
 - (BOOL)isEmailRegistered:(NSString*)email;
-- (BOOL)isEmailVerified:(NSString*)email;
 - (NSString*)residenceTokenForEmail:(NSString*)email;
 
 - (BOOL)removeAllResidences;
 
 - (void)registerResidenceForEmail:(NSString*)email completion:(void(^)(BOOL success, NSError* error))completion;
 - (void)verifyResidenceForEmail:(NSString*)email completion:(void(^)(BOOL success, NSError* error))completion;
-// TODO: - (void)removeResidenceForEmail:(NSString*)email completion:(void(^)(BOOL success, NSError* error))completion;
+- (void)removeResidenceForEmail:(NSString*)email completion:(void(^)(BOOL success, NSError* error))completion;
 
 - (NSString*)uniqueIdentifierForEmail:(NSString*)email;
 

@@ -38,7 +38,7 @@
     return self;
 }
 
-+(IIResidenceStore*)storeWithVerifier:(NSString*)verifier {
++ (IIResidenceStore*)storeWithVerifier:(NSString*)verifier {
     return [[IIResidenceStore alloc] initWithVerifier:verifier];
 }
 
@@ -58,14 +58,9 @@
     return [residence[@"registered"] boolValue];
 }
 
-- (BOOL)isEmailVerified:(NSString*)email {
-    NSDictionary* residence = [self residenceForEmail:email];
-    return [residence[@"verified"] boolValue];
-}
-
 - (NSString*)residenceTokenForEmail:(NSString*)email {
     NSDictionary* residence = [self residenceForEmail:email];
-    return [residence[@"verified"] boolValue] ? residence[@"token"] : nil;
+    return residence[@"authorizationToken"];
 }
 
 - (void)registerResidenceForEmail:(NSString*)email completion:(void(^)(BOOL success, NSError* error))completion {
@@ -74,28 +69,28 @@
         return;
     }
     
-    NSString* residenceToken;
+    NSString* residenceId;
     @synchronized(_key) {
         NSDictionary* residence = [self residenceForEmail:email];
         if (!residence) {
-            residenceToken = [self generateTokenForEmail:email];
-            residence = @{ @"email": email, @"verified": @NO, @"local-residence": residenceToken };
+            residenceId = [self generateTokenForEmail:email];
+            residence = @{ @"email": email, @"residence": residenceId };
             [self updateResidence:residence];
         }
         else {
-            residenceToken = residence[@"local-residence"];
+            residenceId = residence[@"residence"];
         }
     }
     
     NSDictionary* parameters = @{
                                  @"email": email,
-                                 @"residence": residenceToken,
+                                 @"residence": residenceId,
                                  };
 
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:_verifier]];
+    [request setTimeoutInterval:self.verifierTimeout];
     [request setHTTPMethod:@"POST"];
     [request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
-    [request setTimeoutInterval:self.verifierTimeout];
     [request setHTTPBody:[[self encodeParameters:parameters] dataUsingEncoding:NSUTF8StringEncoding]];
     
     [NSURLConnection sendAsynchronousRequest:request queue:_queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
@@ -122,7 +117,8 @@
         if (item) {
             @synchronized(_key) {
                 NSMutableDictionary* residence = [NSMutableDictionary dictionaryWithDictionary:[self residenceForEmail:email]];
-                residence[@"registered"] = @"YES";
+                residence[@"verificationToken"] = item[@"verificationToken"];
+                [residence removeObjectForKey:@"authorizationToken"]; // since it's no longer valid anyway
                 ok = [self updateResidence:residence];
             }
         }
@@ -137,27 +133,25 @@
         return;
     }
     
-    NSString* residenceToken;
+    NSString* residenceId;
+    NSString* token;
     @synchronized(_key) {
         NSDictionary* residence = [self residenceForEmail:email];
-        if (!residence) {
-            completion(NO, nil);
-            return;
-        }
-        else {
-            residenceToken = residence[@"local-residence"];
+        if (residence) {
+            residenceId = residence[@"residence"];
+            token = residence[@"verificationToken"] ?: residence[@"authorizationToken"];
         }
     }
+
+    if (!residenceId || !token) {
+        completion(NO, nil);
+        return;
+    }
     
-    NSDictionary* parameters = @{
-                                 @"email": email,
-                                 @"residence": residenceToken,
-                                 };
-    
-    NSString* url = [_verifier stringByAppendingFormat:@"?%@", [self encodeParameters:parameters]];
-    NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
+    NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:_verifier]];
     [request setHTTPMethod:@"GET"];
-    [request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+    [request addValue:@"application/json" forHTTPHeaderField:@"Residence"];
+    [request addValue:token forHTTPHeaderField:@"Authorization"];
     [request setTimeoutInterval:self.verifierTimeout];
     
     [NSURLConnection sendAsynchronousRequest:request queue:_queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
@@ -179,8 +173,8 @@
             return;
         }
 
-        NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil][@"residence"];
-        if (![json[@"isAuthorised"] boolValue]) {
+        NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        if (![email isEqualToString:json[@"email"]] || [json[@"authorizationToken"] length] == 0) {
             completion(NO, nil);
             return;
         }
@@ -188,9 +182,8 @@
         BOOL ok = NO;
         @synchronized(_key) {
             NSMutableDictionary* residence = [NSMutableDictionary dictionaryWithDictionary:[self residenceForEmail:email]];
-            residence[@"verified"] = @"YES";
-            residence[@"remote-residence"] = json[@"residence"];
-            residence[@"token"] = json[@"token"];
+            residence[@"authorizationToken"] = json[@"authorizationToken"];
+            [residence removeObjectForKey:@"verificationToken"];
             ok = [self updateResidence:residence];
         }
         
@@ -198,6 +191,58 @@
     }];
 }
 
+
+- (void)removeResidenceForEmail:(NSString*)email completion:(void(^)(BOOL success, NSError* error))completion {
+    if (email.length == 0) {
+        completion(NO, nil);
+        return;
+    }
+    
+    NSString* residenceId, *token;
+    @synchronized(_key) {
+        NSDictionary* residence = [self residenceForEmail:email];
+        if (!residence) {
+            completion(NO, nil);
+            return;
+        }
+        else {
+            residenceId = residence[@"residence"];
+            token = residence[@"authorizationToken"];
+        }
+    }
+    
+    NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[[NSURL URLWithString:_verifier] URLByAppendingPathComponent:token]];
+    [request setHTTPMethod:@"DELETE"];
+    [request addValue:@"application/json" forHTTPHeaderField:@"Residence"];
+    [request addValue:residenceId forHTTPHeaderField:@"Residence"];
+    [request setTimeoutInterval:self.verifierTimeout];
+    
+    [NSURLConnection sendAsynchronousRequest:request queue:_queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+        if (!completion) return;
+        
+        if (error) {
+            completion(NO, error);
+            return;
+        }
+        
+        if (!data) {
+            completion(NO, nil);
+            return;
+        }
+        
+        NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+        if ((httpResponse.statusCode / 100) != 2) {
+            completion(NO, nil);
+            return;
+        }
+        
+        @synchronized(_key) {
+            [self deleteResidenceForEmail:email];
+        }
+        
+        completion(YES, nil);
+    }];
+}
 
 - (NSString*)encode:(NSString*)value {
     return (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(NULL,
@@ -327,6 +372,28 @@
     }
     
     return nil;
+}
+
+- (BOOL)deleteResidenceForEmail:(NSString*)email {
+    if (email.length == 0)
+        return NO;
+    
+    NSMutableArray* residences = [self residences] ?: [NSMutableArray arrayWithCapacity:1];
+    NSDictionary* remove = nil;
+    email = [email lowercaseString];
+    for (NSDictionary* existing in residences) {
+        if ([email isEqualToString:[existing[@"email"] lowercaseString]]) {
+            remove = existing;
+            break;
+        }
+    }
+    
+    if (remove) {
+        [residences removeObject:remove];
+        return [self setResidences:residences];
+    }
+    
+    return NO;
 }
 
 - (BOOL)updateResidence:(NSDictionary*)residence {
