@@ -64,6 +64,10 @@
 }
 
 - (void)registerResidenceForEmail:(NSString*)email completion:(void(^)(BOOL success, NSError* error))completion {
+    [self registerResidenceForEmail:email userInfo:nil completion:completion];
+}
+
+- (void)registerResidenceForEmail:(NSString*)email userInfo:(NSString*)userInfo completion:(void(^)(BOOL success, NSError* error))completion {
     if (email.length == 0) {
         completion(NO, nil);
         return;
@@ -82,10 +86,12 @@
         }
     }
     
-    NSDictionary* parameters = @{
+    NSMutableDictionary* parameters = [NSMutableDictionary dictionaryWithDictionary:@{
                                  @"email": email,
                                  @"residence": residenceId,
-                                 };
+                                 }];
+    if (userInfo && userInfo.length > 0)
+        parameters[@"userInfo"] = userInfo;
 
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:_verifier]];
     [request setTimeoutInterval:self.verifierTimeout];
@@ -150,7 +156,7 @@
     
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:_verifier]];
     [request setHTTPMethod:@"GET"];
-    [request addValue:@"application/json" forHTTPHeaderField:@"Residence"];
+    [request addValue:@"application/json" forHTTPHeaderField:@"X-Residence"];
     [request addValue:token forHTTPHeaderField:@"Authorization"];
     [request setTimeoutInterval:self.verifierTimeout];
     
@@ -213,8 +219,8 @@
     
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[[NSURL URLWithString:_verifier] URLByAppendingPathComponent:token]];
     [request setHTTPMethod:@"DELETE"];
-    [request addValue:@"application/json" forHTTPHeaderField:@"Residence"];
-    [request addValue:residenceId forHTTPHeaderField:@"Residence"];
+    [request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+    [request addValue:residenceId forHTTPHeaderField:@"X-Residence"];
     [request setTimeoutInterval:self.verifierTimeout];
     
     [NSURLConnection sendAsynchronousRequest:request queue:_queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {

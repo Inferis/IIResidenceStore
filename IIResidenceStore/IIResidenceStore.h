@@ -20,6 +20,7 @@
 - (BOOL)removeAllResidences;
 
 - (void)registerResidenceForEmail:(NSString*)email completion:(void(^)(BOOL success, NSError* error))completion;
+- (void)registerResidenceForEmail:(NSString*)email userInfo:(NSString*)userInfo completion:(void(^)(BOOL success, NSError* error))completion;
 - (void)verifyResidenceForEmail:(NSString*)email completion:(void(^)(BOOL success, NSError* error))completion;
 - (void)removeResidenceForEmail:(NSString*)email completion:(void(^)(BOOL success, NSError* error))completion;
 
