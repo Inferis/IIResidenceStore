@@ -13,7 +13,6 @@
 #import "Tin+BasicAuthentication.h"
 #import "TinResponse.h"
 #import "SVProgressHUD.h"
-#import "IIResidenceStoreControllerIntegration.h"
 
 @interface MainViewController () <UIAlertViewDelegate>
 
@@ -31,13 +30,12 @@
     IISingleResidenceStore* _store;
 }
 
-static NSString* baseUri = @"http://residencedemo.192.168.1.23.xip.io";
+static NSString* baseUri = @"http://residencedemo.blergh.be";
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        //        [IIResidenceStoreControllerIntegration integrateController:self withVerifier:[baseUri stringByAppendingPathComponent:@"residence"]];
         _store = [IISingleResidenceStore singleStoreWithVerifier:[baseUri stringByAppendingPathComponent:@"residence"]];
     }
     return self;
