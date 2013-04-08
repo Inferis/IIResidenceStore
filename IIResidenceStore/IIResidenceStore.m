@@ -102,34 +102,37 @@
     [NSURLConnection sendAsynchronousRequest:request queue:_queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         if (!completion) return;
         
-        if (error) {
-            completion(NO, error);
-            return;
-        }
-        
-        if (!data) {
-            completion(NO, nil);
-            return;
-        }
-
-        NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
-        if ((httpResponse.statusCode / 100) != 2) {
-            completion(NO, nil);
-            return;
-        }
-        
         BOOL ok = NO;
-        id item = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-        if (item) {
-            @synchronized(_key) {
-                NSMutableDictionary* residence = [NSMutableDictionary dictionaryWithDictionary:[self residenceForEmail:email]];
-                residence[@"verificationToken"] = item[@"verificationToken"];
-                [residence removeObjectForKey:@"authorizationToken"]; // since it's no longer valid anyway
-                ok = [self updateResidence:residence];
+        @try {
+            if (error) {
+                return;
+            }
+            
+            if (!data) {
+                return;
+            }
+            
+            NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+            if ((httpResponse.statusCode / 100) != 2) {
+                return;
+            }
+            
+            id item = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+            if (item) {
+                @synchronized(_key) {
+                    NSMutableDictionary* residence = [NSMutableDictionary dictionaryWithDictionary:[self residenceForEmail:email]];
+                    residence[@"verificationToken"] = item[@"verificationToken"];
+                    [residence removeObjectForKey:@"authorizationToken"]; // since it's no longer valid anyway
+                    ok = [self updateResidence:residence];
+                }
             }
         }
+        @finally {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(ok, nil);
+            });
+        }
         
-        completion(ok, nil);
     }];
 }
 
@@ -157,43 +160,45 @@
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:_verifier]];
     [request setHTTPMethod:@"GET"];
     [request addValue:@"application/json" forHTTPHeaderField:@"X-Residence"];
-    [request addValue:token forHTTPHeaderField:@"Authorization"];
+    [request addValue:[NSString stringWithFormat:@"Token token=\"%@\"", token] forHTTPHeaderField:@"Authorization"];
     [request setTimeoutInterval:self.verifierTimeout];
     
     [NSURLConnection sendAsynchronousRequest:request queue:_queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         if (!completion) return;
-        
-        if (error) {
-            completion(NO, error);
-            return;
-        }
-        
-        if (!data) {
-            completion(NO, nil);
-            return;
-        }
-        
-        NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
-        if ((httpResponse.statusCode / 100) != 2) {
-            completion(NO, nil);
-            return;
-        }
-
-        NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-        if (![email isEqualToString:json[@"email"]] || [json[@"authorizationToken"] length] == 0) {
-            completion(NO, nil);
-            return;
-        }
 
         BOOL ok = NO;
-        @synchronized(_key) {
-            NSMutableDictionary* residence = [NSMutableDictionary dictionaryWithDictionary:[self residenceForEmail:email]];
-            residence[@"authorizationToken"] = json[@"authorizationToken"];
-            [residence removeObjectForKey:@"verificationToken"];
-            ok = [self updateResidence:residence];
+        @try {
+            if (error) {
+                return;
+            }
+            
+            if (!data) {
+                return;
+            }
+            
+            NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+            if ((httpResponse.statusCode / 100) != 2) {
+                return;
+            }
+            
+            NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+            if (![email isEqualToString:json[@"email"]] || [json[@"authorizationToken"] length] == 0) {
+                return;
+            }
+            
+            @synchronized(_key) {
+                NSMutableDictionary* residence = [NSMutableDictionary dictionaryWithDictionary:[self residenceForEmail:email]];
+                residence[@"authorizationToken"] = json[@"authorizationToken"];
+                [residence removeObjectForKey:@"verificationToken"];
+                ok = [self updateResidence:residence];
+            }
+        }
+        @finally {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(ok, error);
+            });
         }
         
-        completion(ok, nil);
     }];
 }
 
@@ -226,27 +231,32 @@
     [NSURLConnection sendAsynchronousRequest:request queue:_queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         if (!completion) return;
         
-        if (error) {
-            completion(NO, error);
-            return;
+        BOOL ok = NO;
+        @try {
+            if (error) {
+                return;
+            }
+            
+            if (!data) {
+                return;
+            }
+            
+            NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+            if ((httpResponse.statusCode / 100) != 2) {
+                return;
+            }
+            
+            @synchronized(_key) {
+                [self deleteResidenceForEmail:email];
+            }
+            
+            ok = YES;
         }
-        
-        if (!data) {
-            completion(NO, nil);
-            return;
+        @finally {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(ok, error);
+            });
         }
-        
-        NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
-        if ((httpResponse.statusCode / 100) != 2) {
-            completion(NO, nil);
-            return;
-        }
-        
-        @synchronized(_key) {
-            [self deleteResidenceForEmail:email];
-        }
-        
-        completion(YES, nil);
     }];
 }
 
